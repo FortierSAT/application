@@ -154,7 +154,9 @@ class ZohoClient:
         successes, failures = [], []
         for orig, result in zip(records, data):
             if result.get("status") == "success":
-                successes.append(orig["Name"])
+                # Zoho-assigned record id lives under details.id
+                zoho_id = result.get("details", {}).get("id")
+                successes.append(zoho_id)
             else:
                 failures.append((orig, result))
                 logger.warning("Zoho rejected: %r → %r", orig, result)
