@@ -102,7 +102,6 @@ def normalize_i3screen(df: pd.DataFrame) -> tuple[list[dict], list[dict]]:
 
     # --- 7) Exclude already-uploaded & dedupe in-batch ---
     batch = result.loc[~result["CCFID"].isin(uploaded_set)]
-    logger.info("After dropping uploaded: %d rows", len(batch))
     before = len(batch)
     batch = batch.drop_duplicates(subset=["CCFID"]).reset_index(drop=True)
     logger.info("Deduplication Yield: %d records", len(batch))
