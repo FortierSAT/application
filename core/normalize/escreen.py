@@ -2,6 +2,7 @@ import logging
 import os
 import shutil
 import subprocess
+import platform
 from datetime import datetime
 from typing import Union
 
@@ -24,21 +25,25 @@ from core.services.zoho    import zoho_client
 from core.helpers          import is_complete, fetch_existing_ccfids
 
 logger = logging.getLogger(__name__)
-SOFFICE_EXE = 'C:\Program Files\LibreOffice\program\soffice.exe'
-# where to find soffice for XLSX→CSV
-_soffice = SOFFICE_EXE
 
-# Then look for either name on PATH
-if not _soffice:
-    _soffice = shutil.which("soffice") or shutil.which("soffice.exe")
+def find_soffice():
+    if platform.system() == "Windows":
+        # try both 64- and 32-bit program files
+        for p in (
+            r"C:\Program Files\LibreOffice\program\soffice.exe",
+            r"C:\Program Files (x86)\LibreOffice\program\soffice.exe",
+        ):
+            if os.path.isfile(p):
+                return p
+    # Unix & Linux lookup
+    return shutil.which("soffice") or shutil.which("soffice.bin")
 
-# Finally, if we still don’t have it, raise a clear error
-if not _soffice:
+SOFFICE_CMD = find_soffice()
+if not SOFFICE_CMD:
     raise RuntimeError(
-        "LibreOffice CLI not found.
+        "LibreOffice CLI (soffice) not found. "
+        "Please install `libreoffice-core` (or similar) in your Docker image."
     )
-
-SOFFICE_CMD = _soffice
 
 def convert_xlsx_to_csv(xlsx_path: str, outdir: str) -> str:
     os.makedirs(outdir, exist_ok=True)
@@ -186,7 +191,7 @@ def normalize_escreen(
     complete_df  = batch[mask]
     staging_df   = batch[~mask]
     new_staging  = staging_df[~staging_df["CCFID"].isin(staged_set)]
-    logger.info("%d complete, %d incomplete", len(complete_df), len(new_staging))
+    logger.info("%d complete, %d incomplete", len(complete_df), len(staging_df))
 
     # 11) Sync collection sites
     db = SessionLocal()

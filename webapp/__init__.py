@@ -8,7 +8,7 @@ def create_app(config_object="core.config"):
     app.config.from_object(config_object)
 
     # Example: register a simple blueprint
-    from webapp.routes import main_bp
-    app.register_blueprint(main_bp)
+    from webapp.routes import bp
+    app.register_blueprint(bp)
 
     return app

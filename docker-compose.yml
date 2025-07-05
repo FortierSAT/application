@@ -1,0 +1,22 @@
+services:
+  web:
+    # build the "web" target from your Dockerfile
+    build:
+      context: .
+      target: web
+    image: myapp-web:latest
+    ports:
+      - "5001:5000"
+    env_file: .env
+    # automatically restart your web service on failure
+    restart: unless-stopped
+
+  cron:
+    # build the "cron" target from your Dockerfile
+    build:
+      context: .
+      target: cron
+    image: myapp-cron:latest
+    env_file: .env
+    # run once on start, then exit; to retrigger, use `docker-compose up cron` again
+    restart: "no"
