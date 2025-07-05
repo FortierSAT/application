@@ -46,27 +46,18 @@ async function dismissTrustArc(page, timeout = 10000) {
 
 ;(async () => {
   console.log('🛠️  Starting eScreen scraper…');
-  const inDocker = fs.existsSync('/.dockerenv')
-    || process.env.RUNNING_IN_DOCKER === 'true';
-  console.log(`🔍 Running in Docker? ${inDocker}`);
 
-  const launchOpts = inDocker
-    ? {
-        headless: true,
-        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium',
-        args: [
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
-          '--remote-debugging-port=9222',
-          '--remote-debugging-address=0.0.0.0'
-        ]
-      }
-    : {
-        headless: true,
-        defaultViewport: null,
-        args: ['--start-maximized']
-      };
+  const launchOpts = {
+    headless: true,
+    executablePath: '/usr/bin/chromium',
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--remote-debugging-port=9222',
+      '--remote-debugging-address=0.0.0.0'
+    ]
+  };
 
   try {
     console.log('🌐 Launching browser…', launchOpts);
