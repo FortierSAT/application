@@ -1,0 +1,136 @@
+{# src/web/templates/worklist_detail.html #}
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>Review Record {{ item.ccfid }}</h1>
+  <form method="post" class="detail-form">
+    <div class="grid">
+
+      {# Read-only IDs #}
+      <div class="form-group">
+        <label>CCFID</label>
+        <input type="text" name="ccfid" value="{{ item.ccfid }}" readonly>
+      </div>
+      <div class="form-group">
+        <label>Primary ID</label>
+        <input type="text" name="primary_id" value="{{ item.primary_id }}" readonly>
+      </div>
+
+      {# Free-form text fields #}
+      {% for key,label in [
+        ("company_name","Company Name"),
+        ("company_code","Company Code"),
+        ("first_name","First Name"),
+        ("last_name","Last Name"),
+        ("location","Location")
+      ] %}
+        <div class="form-group{% if not item[key] %} missing{% endif %}">
+          <label>{{ label }}</label>
+          <input type="text" name="{{ key }}" value="{{ item[key] or '' }}">
+        </div>
+      {% endfor %}
+
+      {# Date pickers #}
+      {% for key,label in [
+        ("collection_date","Collection Date"),
+        ("mro_received","Result Date")
+      ] %}
+        <div class="form-group{% if not item[key] %} missing{% endif %}">
+          <label>{{ label }}</label>
+          <input type="date" name="{{ key }}" value="{{ item[key] }}">
+        </div>
+      {% endfor %}
+
+      {# Collection site autocomplete #}
+      <div class="form-group{% if not item.collection_site %} missing{% endif %}">
+        <label>Collection Site</label>
+        <input
+          list="site-list"
+          name="collection_site"
+          id="collection_site_input"
+          value="{{ item.collection_site or '' }}"
+        >
+        <datalist id="site-list">
+          {% for site in sites %}
+            <option value="{{ site }}"></option>
+          {% endfor %}
+        </datalist>
+      </div>
+
+      {# Auto-filled Site ID #}
+      <div class="form-group">
+        <label>Collection Site ID</label>
+        <input
+          type="text"
+          name="collection_site_id"
+          id="collection_site_id_input"
+          value="{{ item.collection_site_id or '' }}"
+          readonly
+        >
+      </div>
+
+      {# Controlled-vocab dropdowns #}
+      {% macro select_field(name,label,options) -%}
+        <div class="form-group{% if not item[name] %} missing{% endif %}">
+          <label>{{ label }}</label>
+          <select name="{{ name }}">
+            <option value="">— select —</option>
+            {% for opt in options %}
+              <option value="{{ opt }}"
+                {% if item[name]==opt %}selected{% endif %}>
+                {{ opt }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+      {%- endmacro %}
+
+      {{ select_field("laboratory","Laboratory", [
+          "Clinical Reference Laboratory",
+          "Abbott Toxicology",
+          "Omega Laboratories",
+          "Quest Diagnostics"
+        ]) }}
+      {{ select_field("test_reason","Test Reason", [
+          "Pre-Employment","Random","Post Accident","Reasonable Suspicion","Return To Duty","Follow-Up","Pre-Assignment","Job Requirement","CDL Recertification","Recertification","Other"
+        ]) }}
+      {{ select_field("test_type","Test Type", [
+          "Lab Based Urine Test",
+          "Lab Based Hair Test",
+          "Alcohol Breath Test",
+          "POCT Urine Test",
+        ]) }}
+      {{ select_field("test_result","Test Result", [
+          "Negative","Negative-Dilute","Non-Negative","Positive","Cancelled","Lab Reject","Refusal","Other"
+        ]) }}
+      {{ select_field("regulation","Regulation", [
+          "DOT","Non-DOT"
+        ]) }}
+
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Save &amp; Send</button>
+      <a href="{{ url_for('web.worklist') }}" class="btn btn-secondary">
+        ← Back to Worklist
+      </a>
+    </div>
+  </form>
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  <script>
+    // `site_map` is a Python dict; `tojson` turns it into a JS object literal:
+    const siteMap = {{ site_map|tojson }};
+    document.addEventListener("DOMContentLoaded", () => {
+      const siteInput = document.getElementById("collection_site_input");
+      const idInput   = document.getElementById("collection_site_id_input");
+      if (siteInput && idInput) {
+        siteInput.addEventListener("input", () => {
+          idInput.value = siteMap[siteInput.value] || "";
+        });
+      }
+    });
+  </script>
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block container_extra_class %} worklist-mode{% endblock %}
+{% block content %}
+  <h1>Staging Worklist</h1>
+  <input
+    id="worklist-search"
+    type="search"
+    placeholder="Search worklist…"
+    class="search-input"
+    style="margin-bottom: 1.5rem;"
+  >
+
+  {% if items %}
+    <div class="table-container">
+      <table id="worklist-table" class="worklist-table">
+        <thead>
+          <tr>
+            <th>CCFID</th><th>Company</th><th>Code</th><th>First</th>
+            <th>Last</th><th>Collection Date</th><th>Type</th><th>Reason</th>
+            <th>Result</th><th>Location</th><th>Lab</th><th>Reg</th>
+            <th>Site</th><th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for it in items %}
+            <tr>
+              <td>{{ it.ccfid }}</td>
+              <td>{{ it.company_name }}</td>
+              <td>{{ it.company_code }}</td>
+              <td>{{ it.first_name }}</td>
+              <td>{{ it.last_name }}</td>
+              <td>{{ it.collection_date }}</td>
+              <td>{{ it.test_type }}</td>
+              <td>{{ it.test_reason }}</td>
+              <td>{{ it.test_result }}</td>
+              <td>{{ it.location }}</td>
+              <td>{{ it.laboratory }}</td>
+              <td>{{ it.regulation }}</td>
+              <td>{{ it.collection_site }}</td>
+              <td>
+                <a href="{{ url_for('web.worklist_detail', ccfid=it.ccfid) }}">
+                  Resolve
+                </a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p>No staging items. Run the pipeline to populate.</p>
+  {% endif %}
+{% endblock %}

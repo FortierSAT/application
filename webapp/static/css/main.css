@@ -1,0 +1,277 @@
+/* --- Layout & Typography --- */
+body {
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+  background: #f4f7fb;
+  color: #21243d;
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* --- Navigation Bar --- */
+nav {
+  background: #2d6cdf;
+  color: #fff;
+  padding: 1rem 0;
+  text-align: center;
+  font-size: 1.1rem;
+  letter-spacing: 0.03em;
+  border-bottom: 2px solid #dbeafe;
+}
+nav a {
+  color: #fff;
+  text-decoration: none;
+  margin: 0 1.5rem;
+  font-weight: 600;
+  transition: color 0.2s;
+}
+nav a:hover {
+  color: #ffd670;
+}
+
+/* --- Container --- */
+.container {
+  max-width: 1000px;
+  margin: 2rem auto 0 auto;
+  padding: 1.5rem 2rem;
+  background: #fff;
+  border-radius: 1.2rem;
+  box-shadow: 0 4px 28px rgba(70, 117, 204, 0.07);
+}
+
+.container.worklist-mode {
+  max-width: 2000px !important;
+  padding: 2.5rem 2rem 2rem 2rem;
+  margin: 2rem auto;
+  background: #fff;
+  border-radius: 1.2rem;
+  box-shadow: 0 4px 28px rgba(70, 117, 204, 0.07);
+}
+
+/* --- Toolbar --- */
+.worklist-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  gap: 1.5rem;
+}
+.worklist-toolbar h1 {
+  margin: 0;
+  font-size: 2.2rem;
+  color: #2d6cdf;
+  font-weight: 700;
+}
+.worklist-toolbar input {
+  padding: 0.55rem 1.15rem;
+  font-size: 1.06rem;
+  border: 1.5px solid #bdd7fa;
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.worklist-toolbar input:focus {
+  border-color: #2d6cdf;
+  background: #eef6fd;
+}
+
+/* --- Table container for horizontal scroll on small screens --- */
+.table-container {
+  overflow-x: auto;
+  background: #fff;
+  border: 1.5px solid #e3ebf5;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(44, 62, 80, 0.07);
+  margin-bottom: 2rem;
+}
+
+/* --- Table Styling --- */
+#worklist-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 1.06rem;
+  background: #fff;
+}
+#worklist-table th,
+#worklist-table td {
+  padding: 0.95rem 0.7rem;
+  border-bottom: 1px solid #e6eef7;
+  min-width: 120px;
+}
+#worklist-table th {
+  background: #f1f6fd;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  text-transform: uppercase;
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: #2563eb;
+  border-bottom: 2px solid #bcd6fa;
+  box-shadow: 0 2px 0 #e5eaf3;
+}
+
+/* Zebra striping */
+#worklist-table tbody tr:nth-child(even) {
+  background-color: #f8fbff;
+}
+
+/* Row hover */
+#worklist-table tbody tr:hover {
+  background-color: #e9f4fe;
+  transition: background 0.15s;
+}
+
+/* Missing-field highlight */
+#worklist-table td.missing {
+  background-color: #fff5e5;
+  color: #b45309;
+  font-weight: 600;
+}
+
+/* --- Detail Form --- */
+.detail-form .grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1.2rem 2rem;
+  margin-top: 1.5rem;
+}
+.detail-form .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.detail-form .form-group label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #334e68;
+}
+.detail-form .form-group input,
+.detail-form .form-group select {
+  padding: 0.55rem 0.8rem;
+  border: 1.5px solid #bdd7fa;
+  border-radius: 6px;
+  background: #f9fbfc;
+  font-size: 1.06rem;
+  transition: border-color 0.2s;
+}
+.detail-form .form-group input:focus,
+.detail-form .form-group select:focus {
+  border-color: #2d6cdf;
+  background: #eef6fd;
+}
+.detail-form .form-group.missing input,
+.detail-form .form-group.missing select {
+  border-color: #e74c3c;
+  background-color: #fdecea;
+}
+
+.form-actions {
+  margin-top: 2rem;
+  display: flex;
+  gap: 1.5rem;
+}
+
+/* --- Buttons --- */
+.btn-resolve,
+button,
+input[type="submit"] {
+  display: inline-block;
+  background: linear-gradient(90deg, #2d6cdf, #439aff 95%);
+  color: #fff;
+  padding: 0.65rem 1.5rem;
+  border: none;
+  border-radius: 7px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s, box-shadow 0.18s;
+  box-shadow: 0 2px 6px rgba(44, 62, 80, 0.07);
+}
+.btn-resolve:hover,
+button:hover,
+input[type="submit"]:hover {
+  background: linear-gradient(90deg, #204f94, #2563eb 95%);
+  color: #ffd670;
+}
+
+/* --- Flashes/messages --- */
+ul.flashes {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 2rem;
+}
+ul.flashes li.flash {
+  padding: 1rem 1.5rem;
+  border-radius: 0.7rem;
+  background: #f1f6fd;
+  color: #2563eb;
+  font-weight: 600;
+  margin-bottom: 0.8rem;
+  border-left: 5px solid #2d6cdf;
+  box-shadow: 0 2px 8px rgba(44, 62, 80, 0.03);
+}
+
+/* --- Responsive tweaks --- */
+@media (max-width: 700px) {
+  .container {
+    padding: 0.5rem;
+  }
+  .worklist-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.7rem;
+  }
+  #worklist-table th, #worklist-table td {
+    padding: 0.6rem 0.35rem;
+    min-width: 80px;
+  }
+}
+
+/* --- File upload card (for upload_escreen.html) --- */
+.upload-card {
+  max-width: 440px;
+  margin: 2.5rem auto 0 auto;
+  padding: 2.25rem 2rem 2rem 2rem;
+  background: #f9fbfc;
+  border-radius: 1.4rem;
+  box-shadow: 0 4px 20px rgba(44, 62, 80, 0.10);
+  border: 1.5px solid #dde7f3;
+}
+
+.upload-card h2 {
+  text-align: center;
+  color: #2d6cdf;
+  font-size: 2rem;
+  margin-bottom: 1.3rem;
+}
+
+.upload-card label {
+  font-weight: 600;
+  color: #334e68;
+}
+
+.upload-card input[type="file"] {
+  border: 1.2px solid #b4bec6;
+  border-radius: .6rem;
+  padding: .5rem;
+  background: #fff;
+}
+
+.upload-card button[type="submit"] {
+  margin-top: 0.8rem;
+  background: linear-gradient(90deg, #2563eb, #4bb6f5 100%);
+  color: #fff;
+  font-size: 1.12rem;
+  border: none;
+  border-radius: .6rem;
+  padding: .85rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(70, 117, 204, 0.07);
+  transition: background 0.18s, color 0.18s;
+}
+.upload-card button[type="submit"]:hover {
+  background: linear-gradient(90deg, #17408b, #2563eb 90%);
+  color: #ffd670;
+}
