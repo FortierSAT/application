@@ -1,22 +1,26 @@
+version: "3.8"
+
 services:
   web:
-    # build the "web" target from your Dockerfile
+    # build the "release" target from your single Dockerfile
     build:
       context: .
-      target: web
+      target: release
     image: myapp-web:latest
     ports:
-      - "5001:5000"
+      - "5001:5000"           # host:container
     env_file: .env
-    # automatically restart your web service on failure
+    command: >
+      gunicorn webapp.wsgi:app
+      --bind 0.0.0.0:5000
     restart: unless-stopped
 
   cron:
-    # build the "cron" target from your Dockerfile
+    # same image, same build, but a different start command
     build:
       context: .
-      target: cron
+      target: release
     image: myapp-cron:latest
     env_file: .env
-    # run once on start, then exit; to retrigger, use `docker-compose up cron` again
+    command: python -m cronjob.main
     restart: "no"
