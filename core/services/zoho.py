@@ -154,7 +154,6 @@ class ZohoClient:
 
         for orig, result in zip(records, data):
             if result.get("status") == "success":
-                # safely grab Name or fall back to CCFID
                 identity = orig.get("Name") or orig.get("CCFID")
                 successes.append(identity)
             else:
@@ -176,8 +175,7 @@ class ZohoClient:
                 db2.commit()
 
         # 6) Return just the list of CCFIDs
-        return [ccfid for ccfid, _ in successes]
-
+        return successes
 
     def _add_collection_sites_to_db(self, new_sites: list[dict]) -> None:
         """Upsert a list of collection-site dicts into the local DB."""
