@@ -154,9 +154,9 @@ class ZohoClient:
 
         for orig, result in zip(records, data):
             if result.get("status") == "success":
-                zoho_id = result.get("details", {}).get("id")
-                ccfid   = orig["Name"]            # you set Name = str(item.ccfid)
-                successes.append((ccfid, zoho_id))
+                # safely grab Name or fall back to CCFID
+                identity = orig.get("Name") or orig.get("CCFID")
+                successes.append(identity)
             else:
                 failures.append((orig, result))
                 logger.warning("Zoho rejected: %r → %r", orig, result)
