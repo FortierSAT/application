@@ -14,7 +14,7 @@ from core.config     import (
     ZOHO_REFRESH_TOKEN,
     ZOHO_MODULE,
 )
-from core.db.models  import CollectionSite
+from core.db.models  import CollectionSite, UploadedCCFID
 from core.db.session import SessionLocal
 
 logger = logging.getLogger(__name__)
@@ -111,58 +111,72 @@ class ZohoClient:
     def push_records(self, records: list[dict]) -> list[str]:
         """
         Attach lookup IDs, POST to Zoho, return list of CCFIDs that succeeded.
-        Mirrors old `push_records`.
+        Also records each successful CCFID locally with a timestamp.
         """
         if not records:
             return []
 
-        db = SessionLocal()
-        try:
-            # account_info(account_code, account_id)
+        # 1) Build our lookup maps in a single session
+        with SessionLocal() as db:
             crm_map = {
                 code: rid.replace("zcrm_", "")
                 for code, rid in db.execute(
                     text("SELECT account_code, account_id FROM account_info")
                 ).all()
             }
-            # collection_sites(Collection_Site_ID, Record_id)
             site_map = {
                 cs.Collection_Site_ID: cs.Record_id
                 for cs in db.query(CollectionSite).all()
             }
-            # laboratories(Laboratory, Record_id)
             lab_map = {
                 lab.strip(): rid.replace("zcrm_", "")
                 for rid, lab in db.execute(
                     text('SELECT "Record_id","Laboratory" FROM laboratories')
                 ).all()
             }
-        finally:
-            db.close()
 
+        # 2) Attach those IDs to your payloads
         batch = self._attach_lookup_ids(records, crm_map, site_map, lab_map)
 
-        token = self._get_access_token()
-        url   = f"{self.base_url}/crm/v2/{self.module}"
+        # 3) Send to Zoho
+        token   = self._get_access_token()
+        url     = f"{self.base_url}/crm/v2/{self.module}"
         headers = {"Authorization": f"Zoho-oauthtoken {token}"}
 
         logger.info("Pushing %d records to Zoho…", len(batch))
         resp = requests.post(url, json={"data": batch}, headers=headers)
         resp.raise_for_status()
-
         data = resp.json().get("data", [])
-        successes, failures = [], []
+
+        # 4) Collect successes & failures
+        successes: list[tuple[str,str]] = []  # (ccfid, zoho_id)
+        failures: list[tuple[dict, dict]] = []  # (orig_record, zoho_result)
+
         for orig, result in zip(records, data):
             if result.get("status") == "success":
-                successes.append(orig["Name"])
+                zoho_id = result.get("details", {}).get("id")
+                ccfid   = orig["Name"]            # you set Name = str(item.ccfid)
+                successes.append((ccfid, zoho_id))
             else:
                 failures.append((orig, result))
                 logger.warning("Zoho rejected: %r → %r", orig, result)
 
+        logger.info("Zoho accepted %d/%d", len(successes), len(records))
         if failures:
             logger.error("Zoho rejected %d records; none marked uploaded", len(failures))
-        logger.info("Zoho accepted %d/%d", len(successes), len(records))
-        return successes
+
+        # 5) Record all the successes in uploaded_ccfid
+        if successes:
+            with SessionLocal() as db2:
+                for ccfid, _zoho_id in successes:
+                    db2.merge(UploadedCCFID(
+                        ccfid=ccfid,
+                        uploaded_timestamp=datetime.utcnow()
+                    ))
+                db2.commit()
+
+        # 6) Return just the list of CCFIDs
+        return [ccfid for ccfid, _ in successes]
 
     def sync_collection_sites(self, site_df: pd.DataFrame) -> dict[str, str]:
         """

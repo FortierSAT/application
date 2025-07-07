@@ -136,17 +136,13 @@ def worklist_detail(ccfid):
 
             # 6) Push & mark reviewed
             accepted = zoho_client.push_records(payload)
-            if ccfid in accepted:
-                item.reviewed = True
-                item.uploaded_timestamp = datetime.datetime.utcnow()
-                db.execute(
-                    text(
-                        "INSERT INTO uploaded_ccfid (ccfid, uploaded_timestamp) "
-                        "VALUES (:ccfid, :ts)"
-                    ),
-                    {"ccfid": ccfid, "ts": item.uploaded_timestamp},
-                )
-                db.commit()
+
+            if str(ccfid) in accepted:
+                # flag it reviewed in worklist_staging
+                item.reviewed         = True
+                item.reviewed_at      = datetime.datetime.utcnow()
+                db.commit()  # persist the reviewed flag + timestamp
+
                 flash(f"{ccfid} successfully sent to CRM!", "success")
             else:
                 flash(
