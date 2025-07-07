@@ -149,7 +149,7 @@ class ZohoClient:
         data = resp.json().get("data", [])
 
         # 4) Collect successes & failures
-        successes: list[tuple[str,str]] = []  # (ccfid, zoho_id)
+        successes: list[str] = []
         failures: list[tuple[dict, dict]] = []  # (orig_record, zoho_result)
 
         for orig, result in zip(records, data):
@@ -168,7 +168,7 @@ class ZohoClient:
         # 5) Record all the successes in uploaded_ccfid
         if successes:
             with SessionLocal() as db2:
-                for ccfid, _zoho_id in successes:
+                for ccfid in successes:
                     db2.merge(UploadedCCFID(
                         ccfid=ccfid,
                         uploaded_timestamp=datetime.utcnow()
