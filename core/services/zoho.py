@@ -178,6 +178,23 @@ class ZohoClient:
         # 6) Return just the list of CCFIDs
         return [ccfid for ccfid, _ in successes]
 
+
+    def _add_collection_sites_to_db(self, new_sites: list[dict]) -> None:
+        """Upsert a list of collection-site dicts into the local DB."""
+        db = SessionLocal()
+        try:
+            for s in new_sites:
+                db.merge(
+                    CollectionSite(
+                        Record_id          = s["Record_id"],
+                        Collection_Site    = s["Collection_Site"],
+                        Collection_Site_ID = s["Collection_Site_ID"],
+                    )
+                )
+            db.commit()
+        finally:
+            db.close()
+
     def sync_collection_sites(self, site_df: pd.DataFrame) -> dict[str, str]:
         """
         Sync new sites to Zoho, merge locally, return full ID map.
@@ -185,16 +202,20 @@ class ZohoClient:
         """
         db = SessionLocal()
         try:
+            # 1) What we already have
             existing = {
                 cs.Collection_Site_ID: cs.Record_id
                 for cs in db.query(CollectionSite).all()
             }
+
+            # 2) Which IDs are brand-new?
             batch_ids = set(site_df["Collection_Site_ID"])
             new_ids   = batch_ids - set(existing.keys())
 
+            # 3) Prep them for Zoho
             to_create = [
                 {
-                    "Name":               r["Collection_Site"],
+                    "Collection_Site":    r["Collection_Site"],
                     "Collection_Site_ID": r["Collection_Site_ID"],
                 }
                 for _, r in site_df.iterrows()
@@ -204,39 +225,43 @@ class ZohoClient:
             created = []
             if to_create:
                 token   = self._get_access_token()
-                headers = {"Authorization": f"Zoho-oauthtoken {token}"}
+                headers = {
+                    "Authorization": f"Zoho-oauthtoken {token}",
+                    "Content-Type":  "application/json",
+                }
+                url = f"{self.base_url}/crm/v2/Collection_Sites"
 
+                # 4) Send in 100-record batches
                 for i in range(0, len(to_create), 100):
-                    chunk = to_create[i : i + 100]
-                    resp = requests.post(
-                        f"{self.base_url}/crm/v2/Collection_Sites",
-                        json={"data": chunk},
-                        headers=headers,
-                    )
+                    batch = to_create[i : i + 100]
+                    payload = {
+                        "data": [
+                            {
+                                "Name":                x["Collection_Site"],
+                                "Collection_Site_ID":  x["Collection_Site_ID"],
+                            }
+                            for x in batch
+                        ]
+                    }
+                    resp = requests.post(url, headers=headers, json=payload)
                     resp.raise_for_status()
-                    for req, zoho in zip(chunk, resp.json().get("data", [])):
-                        rid = zoho.get("details", {}).get("id")
-                        if rid:
-                            req["Record_id"] = str(rid)
-                            created.append(req)
 
-            # Merge new into local DB
-            for s in created:
-                db.merge(CollectionSite(
-                    Record_id          = s["Record_id"],
-                    Collection_Site    = s["Collection_Site"],
-                    Collection_Site_ID = s["Collection_Site_ID"],
-                ))
-            db.commit()
+                    for req, zoho_rec in zip(batch, resp.json().get("data", [])):
+                        # Zoho returns the new record’s ID here
+                        req["Record_id"] = str(
+                            zoho_rec.get("details", {}).get("id", "")
+                        )
+                        created.append(req)
 
-            final = {
-                cs.Collection_Site_ID: cs.Record_id
-                for cs in db.query(CollectionSite).all()
-            }
+                # 5) Merge those new ones into our local DB
+                self._add_collection_sites_to_db(created)
+
+            # 6) Finally, re-query to get the full up-to-date map
+            all_sites = db.query(CollectionSite).all()
+            return {s.Collection_Site_ID: s.Record_id for s in all_sites}
+
         finally:
             db.close()
-
-        return final
 
     def fetch_uploaded_ccfids(self) -> list[str]:
         """
