@@ -11,6 +11,7 @@ from core.normalize.common import (
     map_laboratory,
     map_reason,
     map_regulation,
+    map_regbody,
     map_result,
     safe_date_parse,
     to_zoho_date,
@@ -73,6 +74,7 @@ def normalize_i3screen(df: pd.DataFrame) -> tuple[list[dict], list[dict]]:
     )
     df["Test_Reason"] = df.get("Reason For Test","").apply(map_reason)
     df["Test_Result"] = df.get("MRO Result","").apply(map_result)
+    df["Positive_For"] = ""
 
     # --- 4) Test_Type classification ---
     def i3_test_type(v):
@@ -86,6 +88,7 @@ def normalize_i3screen(df: pd.DataFrame) -> tuple[list[dict], list[dict]]:
     # --- 5) Laboratory, regulation, site & location ---
     df["Laboratory"]         = df.get("Lab","").apply(map_laboratory)
     df["Regulation"]         = df.get("Program Description","").apply(map_regulation)
+    df["Regulation_Body"]    = df.get("Agency","").apply(map_regbody)
     df["Collection_Site"]    = df.get("Collection Site","").fillna("").str.title()
     df["Collection_Site_ID"] = (
         df.get("Collection Site ID","")
@@ -158,6 +161,8 @@ def normalize_i3screen(df: pd.DataFrame) -> tuple[list[dict], list[dict]]:
             "Test_Result":        "test_result",
             "Test_Type":          "test_type",
             "Regulation":         "regulation",
+            "Regulation_Body":    "regulation_body",
+            "BAT_Value":          "bat_value",
         }
         now    = datetime.utcnow()
         mapped = []

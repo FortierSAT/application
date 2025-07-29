@@ -1,86 +1,120 @@
-/* --- Layout & Typography --- */
-body {
-  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
-  background: #f4f7fb;
-  color: #21243d;
-  margin: 0;
-  line-height: 1.6;
+/* --- Base & Typography --- */
+:root {
+  --primary:    #2d6cdf;
+  --primary-dark: #2563eb;
+  --accent:     #ffd670;
+  --bg:         #f4f7fb;
+  --card-bg:    #ffffff;
+  --text:       #21243d;
+  --muted:      #66788a;
+  --error:      #e74c3c;
+  --error-bg:   #fdecea;
+  --missing-bg: #fff5e5;
 }
 
-/* --- Navigation Bar --- */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;    /* ~14px */
+  line-height: 1.5;
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* --- Utility --- */
+.hidden {
+  display: none !important;
+}
+
+/* --- Nav Bar --- */
 nav {
-  background: #2d6cdf;
+  background: var(--primary);
   color: #fff;
-  padding: 1rem 0;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
   text-align: center;
-  font-size: 1.1rem;
-  letter-spacing: 0.03em;
-  border-bottom: 2px solid #dbeafe;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
 }
 nav a {
   color: #fff;
+  margin: 0 1rem;
+  font-weight: 500;
   text-decoration: none;
-  margin: 0 1.5rem;
-  font-weight: 600;
   transition: color 0.2s;
 }
 nav a:hover {
-  color: #ffd670;
+  color: var(--accent);
 }
 
 /* --- Container --- */
 .container {
-  max-width: 1000px;
-  margin: 2rem auto 0 auto;
-  padding: 1.5rem 2rem;
-  background: #fff;
-  border-radius: 1.2rem;
-  box-shadow: 0 4px 28px rgba(70, 117, 204, 0.07);
-}
-
-.container.worklist-mode {
-  max-width: 2000px !important;
-  padding: 2.5rem 2rem 2rem 2rem;
+  max-width: 960px;
   margin: 2rem auto;
-  background: #fff;
-  border-radius: 1.2rem;
-  box-shadow: 0 4px 28px rgba(70, 117, 204, 0.07);
+  padding: 1.5rem;
+  background: var(--card-bg);
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+}
+.container.worklist-mode {
+  max-width: 100%;
 }
 
 /* --- Toolbar --- */
 .worklist-toolbar {
   display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 2rem;
-  gap: 1.5rem;
+  margin-bottom: 1.5rem;
 }
-.worklist-toolbar h1 {
-  margin: 0;
-  font-size: 2.2rem;
-  color: #2d6cdf;
-  font-weight: 700;
+.worklist-toolbar > * {
+  flex: 1;
 }
-.worklist-toolbar input {
-  padding: 0.55rem 1.15rem;
-  font-size: 1.06rem;
-  border: 1.5px solid #bdd7fa;
-  border-radius: 8px;
+.worklist-toolbar input[type="search"] {
+  padding: 0.5rem 1rem;
+  border: 1px solid #d1e3fc;
+  border-radius: 0.5rem;
   outline: none;
   transition: border-color 0.2s;
+  font-size: 0.9rem;
 }
-.worklist-toolbar input:focus {
-  border-color: #2d6cdf;
-  background: #eef6fd;
+.worklist-toolbar input[type="search"]:focus {
+  border-color: var(--primary-dark);
+  background: #eef4fe;
 }
 
-/* --- Table container for horizontal scroll on small screens --- */
+/* --- Bulk Controls --- */
+#bulk-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+#bulk-controls select,
+#bulk-controls input[type="text"] {
+  padding: 0.45rem 0.75rem;
+  border: 1px solid #d1e3fc;
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+}
+#bulk-controls button {
+  padding: 0.45rem 1rem;
+  font-size: 0.9rem;
+  border-radius: 0.5rem;
+}
+
+/* --- Table Container --- */
 .table-container {
   overflow-x: auto;
-  background: #fff;
-  border: 1.5px solid #e3ebf5;
-  border-radius: 10px;
-  box-shadow: 0 2px 10px rgba(44, 62, 80, 0.07);
+  background: var(--card-bg);
+  border: 1px solid #e3ebf5;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
   margin-bottom: 2rem;
 }
 
@@ -88,190 +122,123 @@ nav a:hover {
 #worklist-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 1.06rem;
-  background: #fff;
+  font-size: 0.9rem;
 }
 #worklist-table th,
 #worklist-table td {
-  padding: 0.95rem 0.7rem;
+  padding: 0.7rem 0.6rem;
+  text-align: left;
   border-bottom: 1px solid #e6eef7;
-  min-width: 120px;
+  min-width: 100px;
 }
 #worklist-table th {
-  background: #f1f6fd;
+  background: #fafcff;
   position: sticky;
   top: 0;
-  z-index: 2;
-  text-transform: uppercase;
-  font-size: 0.92rem;
+  z-index: 1;
+  color: var(--primary-dark);
   font-weight: 600;
-  letter-spacing: 0.04em;
-  color: #2563eb;
-  border-bottom: 2px solid #bcd6fa;
-  box-shadow: 0 2px 0 #e5eaf3;
+  text-transform: uppercase;
+  font-size: 0.8rem;
 }
-
-/* Zebra striping */
 #worklist-table tbody tr:nth-child(even) {
-  background-color: #f8fbff;
+  background: #fcfdff;
 }
-
-/* Row hover */
 #worklist-table tbody tr:hover {
-  background-color: #e9f4fe;
-  transition: background 0.15s;
+  background: #f0f6ff;
 }
-
-/* Missing-field highlight */
 #worklist-table td.missing {
-  background-color: #fff5e5;
-  color: #b45309;
+  background: var(--missing-bg);
+  color: var(--error);
   font-weight: 600;
 }
 
 /* --- Detail Form --- */
 .detail-form .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 1.2rem 2rem;
+  grid-template-columns: repeat(auto-fill, minmax(220px,1fr));
+  gap: 1rem 1.5rem;
   margin-top: 1.5rem;
 }
 .detail-form .form-group {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.3rem;
 }
 .detail-form .form-group label {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #334e68;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--muted);
 }
 .detail-form .form-group input,
 .detail-form .form-group select {
-  padding: 0.55rem 0.8rem;
-  border: 1.5px solid #bdd7fa;
-  border-radius: 6px;
-  background: #f9fbfc;
-  font-size: 1.06rem;
+  padding: 0.45rem 0.6rem;
+  font-size: 0.9rem;
+  border: 1px solid #d1e3fc;
+  border-radius: 0.5rem;
+  background: #fafcff;
   transition: border-color 0.2s;
 }
 .detail-form .form-group input:focus,
 .detail-form .form-group select:focus {
-  border-color: #2d6cdf;
-  background: #eef6fd;
+  border-color: var(--primary-dark);
+  background: #eef4fe;
 }
 .detail-form .form-group.missing input,
 .detail-form .form-group.missing select {
-  border-color: #e74c3c;
-  background-color: #fdecea;
+  border-color: var(--error);
+  background: var(--error-bg);
 }
 
+/* --- Form Actions & Buttons --- */
 .form-actions {
-  margin-top: 2rem;
+  margin-top: 1.5rem;
   display: flex;
-  gap: 1.5rem;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
-
-/* --- Buttons --- */
-.btn-resolve,
 button,
 input[type="submit"] {
-  display: inline-block;
-  background: linear-gradient(90deg, #2d6cdf, #439aff 95%);
+  background: var(--primary);
   color: #fff;
-  padding: 0.65rem 1.5rem;
   border: none;
-  border-radius: 7px;
-  font-size: 1rem;
-  font-weight: 600;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: background 0.18s, box-shadow 0.18s;
-  box-shadow: 0 2px 6px rgba(44, 62, 80, 0.07);
+  transition: background 0.2s, transform 0.1s;
 }
-.btn-resolve:hover,
 button:hover,
 input[type="submit"]:hover {
-  background: linear-gradient(90deg, #204f94, #2563eb 95%);
-  color: #ffd670;
+  background: var(--primary-dark);
+  transform: translateY(-1px);
 }
 
-/* --- Flashes/messages --- */
+/* --- Flashes/Messages --- */
 ul.flashes {
   list-style: none;
   padding: 0;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 ul.flashes li.flash {
-  padding: 1rem 1.5rem;
-  border-radius: 0.7rem;
-  background: #f1f6fd;
-  color: #2563eb;
-  font-weight: 600;
-  margin-bottom: 0.8rem;
-  border-left: 5px solid #2d6cdf;
-  box-shadow: 0 2px 8px rgba(44, 62, 80, 0.03);
+  background: #eef4fe;
+  color: var(--primary-dark);
+  border-left: 4px solid var(--primary);
+  padding: 0.75rem 1rem;
+  border-radius: 0.4rem;
+  font-size: 0.9rem;
 }
 
-/* --- Responsive tweaks --- */
+/* --- Responsive --- */
 @media (max-width: 700px) {
-  .container {
-    padding: 0.5rem;
-  }
   .worklist-toolbar {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 0.7rem;
+    gap: 0.75rem;
   }
-  #worklist-table th, #worklist-table td {
-    padding: 0.6rem 0.35rem;
+  #worklist-table th,
+  #worklist-table td {
+    padding: 0.5rem 0.4rem;
     min-width: 80px;
   }
-}
-
-/* --- File upload card (for upload_escreen.html) --- */
-.upload-card {
-  max-width: 440px;
-  margin: 2.5rem auto 0 auto;
-  padding: 2.25rem 2rem 2rem 2rem;
-  background: #f9fbfc;
-  border-radius: 1.4rem;
-  box-shadow: 0 4px 20px rgba(44, 62, 80, 0.10);
-  border: 1.5px solid #dde7f3;
-}
-
-.upload-card h2 {
-  text-align: center;
-  color: #2d6cdf;
-  font-size: 2rem;
-  margin-bottom: 1.3rem;
-}
-
-.upload-card label {
-  font-weight: 600;
-  color: #334e68;
-}
-
-.upload-card input[type="file"] {
-  border: 1.2px solid #b4bec6;
-  border-radius: .6rem;
-  padding: .5rem;
-  background: #fff;
-}
-
-.upload-card button[type="submit"] {
-  margin-top: 0.8rem;
-  background: linear-gradient(90deg, #2563eb, #4bb6f5 100%);
-  color: #fff;
-  font-size: 1.12rem;
-  border: none;
-  border-radius: .6rem;
-  padding: .85rem;
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: 0 2px 10px rgba(70, 117, 204, 0.07);
-  transition: background 0.18s, color 0.18s;
-}
-.upload-card button[type="submit"]:hover {
-  background: linear-gradient(90deg, #17408b, #2563eb 90%);
-  color: #ffd670;
 }

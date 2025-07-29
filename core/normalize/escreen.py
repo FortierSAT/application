@@ -149,6 +149,7 @@ def normalize_escreen(
     df["MRO_Received"]    = df[mro_date_col].apply(safe_date_parse).apply(to_zoho_date)
     df["Test_Result"]     = df[result_col].apply(map_result)
     df = df[df["Test_Result"] != ""].copy()
+    df["Positive_For"] = ""
     df["Test_Reason"]     = df[reason_col].apply(map_reason)
     df["Regulation"]      = df[regulation_col].apply(map_regulation)
 

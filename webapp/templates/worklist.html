@@ -1,48 +1,101 @@
 {% extends "base.html" %}
 {% block container_extra_class %} worklist-mode{% endblock %}
+
 {% block content %}
   <h1>Staging Worklist</h1>
+
   <input
     id="worklist-search"
     type="search"
     placeholder="Search worklist…"
     class="search-input"
-    style="margin-bottom: 1.5rem;"
+    style="margin-bottom:1rem;"
   >
+
+  <div id="bulk-controls" style="margin-bottom:1.5rem;">
+    <select id="bulk-field">
+      <option value="" disabled selected>Select Field</option>
+      <option value="collection_site">Collection Site</option>
+      <option value="collection_site_id">Site ID</option>
+      <option value="location">Location</option>
+      <option value="laboratory">Laboratory</option>
+      <option value="test_reason">Test Reason</option>
+      <option value="test_type">Test Type</option>
+      <option value="test_result">Test Result</option>
+      <option value="regulation">Regulation</option>
+      <option value="regulation_body">Regulation Body</option>
+      <option value="bat_value">BAT Value</option>
+    </select>
+
+    <!-- Autocomplete for Collection Site -->
+    <input
+      list="bulk-site-list"
+      type="text"
+      id="bulk-site-input"
+      placeholder="Select Site"
+      style="display:none; margin:0 0.5rem;"
+    >
+    <datalist id="bulk-site-list">
+      {% for site in sites %}
+        <option value="{{ site }}"></option>
+      {% endfor %}
+    </datalist>
+
+    <!-- free‑text fallback -->
+    <input
+      type="text"
+      id="bulk-value-text"
+      placeholder="New value"
+      style="display:none; margin:0 0.5rem;"
+    >
+
+    <!-- dropdown for picklists -->
+    <select
+      id="bulk-value-select"
+      style="display:none; margin:0 0.5rem;"
+    ></select>
+
+    <!-- hidden carry‑through for site ID -->
+    <input type="hidden" id="bulk-site-id" name="collection_site_id">
+
+    <button id="bulk-apply" class="btn btn-secondary">Apply</button>
+    <button id="bulk-send"  class="btn btn-primary">Send to CRM</button>
+  </div>
 
   {% if items %}
     <div class="table-container">
       <table id="worklist-table" class="worklist-table">
         <thead>
           <tr>
-            <th>CCFID</th><th>Company</th><th>Code</th><th>First</th>
-            <th>Last</th><th>Collection Date</th><th>Type</th><th>Reason</th>
-            <th>Result</th><th>Location</th><th>Lab</th><th>Reg</th>
+            <th style="width:2rem; text-align:center; padding:0.25rem;">
+              <input type="checkbox" id="select-all">
+            </th>
+            <th>CCFID</th><th>Company</th>
+            <th>First</th><th>Last</th>
+            <th>Type</th><th>Reason</th><th>Result</th>
             <th>Site</th><th>Action</th>
           </tr>
         </thead>
         <tbody>
           {% for it in items %}
-            <tr>
-              <td>{{ it.ccfid }}</td>
-              <td>{{ it.company_name }}</td>
-              <td>{{ it.company_code }}</td>
-              <td>{{ it.first_name }}</td>
-              <td>{{ it.last_name }}</td>
-              <td>{{ it.collection_date }}</td>
-              <td>{{ it.test_type }}</td>
-              <td>{{ it.test_reason }}</td>
-              <td>{{ it.test_result }}</td>
-              <td>{{ it.location }}</td>
-              <td>{{ it.laboratory }}</td>
-              <td>{{ it.regulation }}</td>
-              <td>{{ it.collection_site }}</td>
-              <td>
-                <a href="{{ url_for('web.worklist_detail', ccfid=it.ccfid) }}">
-                  Resolve
-                </a>
-              </td>
-            </tr>
+          <tr data-ccfid="{{ it.ccfid }}">
+            <td style="text-align:center; padding:0.25rem;">
+              <input type="checkbox" class="row-checkbox">
+            </td>
+            <td>{{ it.ccfid }}</td>
+            <td>{{ it.company_name }}</td>
+            <td>{{ it.first_name }}</td>
+            <td>{{ it.last_name }}</td>
+            <td>{{ it.test_type }}</td>
+            <td>{{ it.test_reason }}</td>
+            <td>{{ it.test_result }}</td>
+            <td>{{ it.collection_site }}</td>
+            <td>
+              <a href="{{ url_for('web.worklist_detail', ccfid=it.ccfid) }}">
+                Resolve
+              </a>
+            </td>
+          </tr>
           {% endfor %}
         </tbody>
       </table>
@@ -50,4 +103,21 @@
   {% else %}
     <p>No staging items. Run the pipeline to populate.</p>
   {% endif %}
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  <script>
+    // picklists for fields
+    const bulkFieldOptions = {
+      laboratory:      {{ laboratory_opts|tojson }},
+      test_reason:     {{ test_reason_opts|tojson }},
+      test_type:       {{ test_type_opts|tojson }},
+      test_result:     {{ test_result_opts|tojson }},
+      regulation:      {{ regulation_opts|tojson }},
+      regulation_body: {{ regulation_body_opts|tojson }}
+    };
+    // name→ID lookup for sites
+    const siteMap = {{ site_map|tojson }};
+  </script>
 {% endblock %}

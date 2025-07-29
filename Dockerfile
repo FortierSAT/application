@@ -46,6 +46,7 @@ FROM base AS release
 
 # install Python deps for both web & cron
 RUN pip install --no-cache-dir -r requirements.txt
+RUN playwright install
 
 # pull in Node scrapers & browsers
 COPY --from=node-builder /scraper             /app/core/scrapers

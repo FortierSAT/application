@@ -24,6 +24,15 @@ REASON_MAP = {
     "recertification": "Recertification",
 }
 
+REGBODY_MAP = {
+    "fmcsa": "FMCSA",
+    "phmsa": "PHMSA",
+    "fta": "FTA", 
+    "default": "",
+    "not provided": "",
+    "not applicable": "",
+}
+
 RESULT_MAP = {
     "negative": "Negative",
     "neg": "Negative",
@@ -31,6 +40,7 @@ RESULT_MAP = {
     "negd": "Negative-Dilute",
     "positive": "Positive",
     "pos": "Positive",
+    "positive-dilute": "Positive-Dilute",
     "non-contact positive": "Positive",
     "cancelled": "Cancelled",
     "canc": "Cancelled",
@@ -56,6 +66,8 @@ MASTER_COLUMNS = [
     "Test_Result",
     "Test_Type",
     "Regulation",
+    "Regulation_Body",
+    "BAT_Value",
     "MRO_Received",
     "Laboratory",
     "Collection_Site",
@@ -120,6 +132,14 @@ def map_result(val):
         return mapped
     return c.title()
 
+def map_regbody(val):
+    if not isinstance(val, str):
+        return ""
+    c = val.strip().lower()
+    mapped = REGBODY_MAP.get(c)
+    if mapped is not None:
+        return mapped
+    return c.title()
 
 def map_laboratory(val):
     v = str(val).lower()

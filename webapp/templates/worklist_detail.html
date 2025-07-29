@@ -1,4 +1,4 @@
-{# src/web/templates/worklist_detail.html #}
+{# templates/worklist_detail.html #}
 {% extends "base.html" %}
 
 {% block content %}
@@ -6,114 +6,196 @@
   <form method="post" class="detail-form">
     <div class="grid">
 
-      {# Read-only IDs #}
+      <!-- Read‑only IDs -->
       <div class="form-group">
-        <label>CCFID</label>
-        <input type="text" name="ccfid" value="{{ item.ccfid }}" readonly>
+        <label for="ccfid">CCFID</label>
+        <input id="ccfid" name="ccfid" type="text" value="{{ item.ccfid }}" readonly>
       </div>
       <div class="form-group">
-        <label>Primary ID</label>
-        <input type="text" name="primary_id" value="{{ item.primary_id }}" readonly>
+        <label for="primary_id">Primary ID</label>
+        <input id="primary_id" name="primary_id" type="text" value="{{ item.primary_id }}" readonly>
       </div>
 
-      {# Free-form text fields #}
-      {% for key,label in [
-        ("company_name","Company Name"),
-        ("company_code","Company Code"),
-        ("first_name","First Name"),
-        ("last_name","Last Name"),
-        ("location","Location")
-      ] %}
-        <div class="form-group{% if not item[key] %} missing{% endif %}">
-          <label>{{ label }}</label>
-          <input type="text" name="{{ key }}" value="{{ item[key] or '' }}">
-        </div>
-      {% endfor %}
+      <!-- Company Name -->
+      <div class="form-group{% if not item.company_name %} missing{% endif %}">
+        <label for="company_name">Company Name</label>
+        <input id="company_name" name="company_name" type="text"
+               value="{{ item.company_name or '' }}">
+      </div>
 
-      {# Date pickers #}
-      {% for key,label in [
-        ("collection_date","Collection Date"),
-        ("mro_received","Result Date")
-      ] %}
-        <div class="form-group{% if not item[key] %} missing{% endif %}">
-          <label>{{ label }}</label>
-          <input type="date" name="{{ key }}" value="{{ item[key] }}">
-        </div>
-      {% endfor %}
+      <!-- Company Code (triggers Location) -->
+      <div class="form-group{% if not item.company_code %} missing{% endif %}"
+           id="company_code_group">
+        <label for="company_code">Company Code</label>
+        <input id="company_code" name="company_code" type="text"
+               value="{{ item.company_code or '' }}">
+      </div>
 
-      {# Collection site autocomplete #}
+      <!-- Location (only if Company Code == A1310) -->
+      <div class="form-group{% if not item.location %} missing{% endif %} hidden"
+           id="location_group">
+        <label for="location">Location</label>
+        <input id="location" name="location" type="text"
+               value="{{ item.location or '' }}">
+      </div>
+
+      <!-- First & Last -->
+      <div class="form-group{% if not item.first_name %} missing{% endif %}">
+        <label for="first_name">First Name</label>
+        <input id="first_name" name="first_name" type="text"
+               value="{{ item.first_name or '' }}">
+      </div>
+      <div class="form-group{% if not item.last_name %} missing{% endif %}">
+        <label for="last_name">Last Name</label>
+        <input id="last_name" name="last_name" type="text"
+               value="{{ item.last_name or '' }}">
+      </div>
+
+      <!-- Dates -->
+      <div class="form-group{% if not item.collection_date %} missing{% endif %}">
+        <label for="collection_date">Collection Date</label>
+        <input id="collection_date" name="collection_date" type="date"
+               value="{{ item.collection_date }}">
+      </div>
+      <div class="form-group{% if not item.mro_received %} missing{% endif %}">
+        <label for="mro_received">Result Date</label>
+        <input id="mro_received" name="mro_received" type="date"
+               value="{{ item.mro_received }}">
+      </div>
+
+      <!-- Site autocomplete -->
       <div class="form-group{% if not item.collection_site %} missing{% endif %}">
-        <label>Collection Site</label>
-        <input
-          list="site-list"
-          name="collection_site"
-          id="collection_site_input"
-          value="{{ item.collection_site or '' }}"
-        >
+        <label for="collection_site_input">Collection Site</label>
+        <input list="site-list" id="collection_site_input"
+               name="collection_site" type="text"
+               value="{{ item.collection_site or '' }}">
         <datalist id="site-list">
-          {% for site in sites %}
-            <option value="{{ site }}"></option>
+          {% for s in sites %}
+            <option value="{{ s }}"></option>
           {% endfor %}
         </datalist>
       </div>
 
-      {# Auto-filled Site ID #}
-      <div class="form-group">
-        <label>Collection Site ID</label>
-        <input
-          type="text"
-          name="collection_site_id"
-          id="collection_site_id_input"
-          value="{{ item.collection_site_id or '' }}"
-          readonly
-        >
+      <!-- hidden ID field -->
+      <div class="form-group hidden">
+        <label for="collection_site_id_input">Site ID</label>
+        <input id="collection_site_id_input" name="collection_site_id"
+               type="text" readonly
+               value="{{ item.collection_site_id or '' }}">
       </div>
 
-      {# Controlled-vocab dropdowns #}
-      {% macro select_field(name,label,options) -%}
-        <div class="form-group{% if not item[name] %} missing{% endif %}">
-          <label>{{ label }}</label>
-          <select name="{{ name }}">
-            <option value="">— select —</option>
-            {% for opt in options %}
-              <option value="{{ opt }}"
-                {% if item[name]==opt %}selected{% endif %}>
-                {{ opt }}
-              </option>
-            {% endfor %}
-          </select>
-        </div>
-      {%- endmacro %}
+      <!-- Laboratory -->
+      <div class="form-group{% if not item.laboratory %} missing{% endif %}"
+           id="laboratory_group">
+        <label for="laboratory">Laboratory</label>
+        <select id="laboratory" name="laboratory">
+          <option value="">— select —</option>
+          {% for opt in laboratory_opts %}
+            <option value="{{ opt }}"
+              {% if item.laboratory==opt %}selected{% endif %}>
+              {{ opt }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
 
-      {{ select_field("laboratory","Laboratory", [
-          "Clinical Reference Laboratory",
-          "Abbott Toxicology",
-          "Omega Laboratories",
-          "Quest Diagnostics"
-        ]) }}
-      {{ select_field("test_reason","Test Reason", [
-          "Pre-Employment","Random","Post Accident","Reasonable Suspicion","Return To Duty","Follow-Up","Pre-Assignment","Job Requirement","CDL Recertification","Recertification","Other"
-        ]) }}
-      {{ select_field("test_type","Test Type", [
-          "Lab Based Urine Test",
-          "Lab Based Hair Test",
-          "Alcohol Breath Test",
-          "POCT Urine Test",
-        ]) }}
-      {{ select_field("test_result","Test Result", [
-          "Negative","Negative-Dilute","Non-Negative","Positive","Cancelled","Lab Reject","Refusal","Other"
-        ]) }}
-      {{ select_field("regulation","Regulation", [
-          "DOT","Non-DOT"
-        ]) }}
+      <!-- Reason -->
+      <div class="form-group{% if not item.test_reason %} missing{% endif %}">
+        <label for="test_reason">Test Reason</label>
+        <select id="test_reason" name="test_reason">
+          <option value="">— select —</option>
+          {% for opt in test_reason_opts %}
+            <option value="{{ opt }}"
+              {% if item.test_reason==opt %}selected{% endif %}>
+              {{ opt }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Type -->
+      <div class="form-group{% if not item.test_type %} missing{% endif %}"
+           id="test_type_group">
+        <label for="test_type">Test Type</label>
+        <select id="test_type" name="test_type">
+          <option value="">— select —</option>
+          {% for opt in test_type_opts %}
+            <option value="{{ opt }}"
+              {% if item.test_type==opt %}selected{% endif %}>
+              {{ opt }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- BAT Value -->
+      <div class="form-group{% if not item.bat_value %} missing{% endif %} hidden"
+           id="bat_value_group">
+        <label for="bat_value">BAT Value</label>
+        <input id="bat_value" name="bat_value" type="text"
+               value="{{ item.bat_value or '' }}">
+      </div>
+
+      <!-- Result -->
+      <div class="form-group{% if not item.test_result %} missing{% endif %}"
+           id="test_result_group">
+        <label for="test_result">Test Result</label>
+        <select id="test_result" name="test_result">
+          <option value="">— select —</option>
+          {% for opt in test_result_opts %}
+            <option value="{{ opt }}"
+              {% if item.test_result==opt %}selected{% endif %}>
+              {{ opt }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Positive For -->
+      <div class="form-group{% if not item.positive_for %} missing{% endif %} hidden"
+           id="positive_for_group">
+        <label for="positive_for">Positive For</label>
+        <select id="positive_for" name="positive_for">
+          <option value="">— select —</option>
+          {% for opt in positive_for_opts %}
+            <option value="{{ opt }}"
+              {% if item.positive_for==opt %}selected{% endif %}>
+              {{ opt }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Regulation -->
+      <div class="form-group{% if not item.regulation %} missing{% endif %}"
+           id="regulation_group">
+        <label for="regulation">Regulation</label>
+        <select id="regulation" name="regulation">
+          <option value="">— select —</option>
+          {% for opt in regulation_opts %}
+            <option value="{{ opt }}"
+              {% if item.regulation==opt %}selected{% endif %}>
+              {{ opt }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Regulation Body -->
+      <div class="form-group{% if not item.regulation_body %} missing{% endif %} hidden"
+           id="regulation_body_group">
+        <label for="regulation_body">Regulation Body</label>
+        <select id="regulation_body" name="regulation_body">
+          <option value="">— select —</option>
+          {# FMCSA, PHMSA, FTA will be injected by JS #}
+        </select>
+      </div>
 
     </div>
 
     <div class="form-actions">
-      <button type="submit" class="btn btn-primary">Save &amp; Send</button>
-      <a href="{{ url_for('web.worklist') }}" class="btn btn-secondary">
-        ← Back to Worklist
-      </a>
+      <input type="submit" class="btn" value="Save & Send">
+      <a href="{{ url_for('web.worklist') }}" class="btn">← Back to Worklist</a>
     </div>
   </form>
 {% endblock %}
@@ -121,16 +203,74 @@
 {% block scripts %}
   {{ super() }}
   <script>
-    // `site_map` is a Python dict; `tojson` turns it into a JS object literal:
-    const siteMap = {{ site_map|tojson }};
     document.addEventListener("DOMContentLoaded", () => {
+      // shortcut helpers
+      const show = el => el.classList.remove("hidden");
+      const hide = el => el.classList.add("hidden");
+
+      // --- Collection Site autocomplete → hidden ID ---
+      const siteMap   = {{ site_map|tojson }};
       const siteInput = document.getElementById("collection_site_input");
       const idInput   = document.getElementById("collection_site_id_input");
-      if (siteInput && idInput) {
-        siteInput.addEventListener("input", () => {
-          idInput.value = siteMap[siteInput.value] || "";
-        });
-      }
+      siteInput?.addEventListener("input", () => {
+        idInput.value = siteMap[siteInput.value] || "";
+      });
+
+      // --- Regulation → Regulation Body ---
+      const reg       = document.getElementById("regulation");
+      const regGrp    = document.getElementById("regulation_body_group");
+      const regSel    = document.getElementById("regulation_body");
+      ["FMCSA","PHMSA","FTA"].forEach(o => regSel.append(new Option(o,o)));
+      const toggleReg = () => {
+        if (reg.value === "DOT") show(regGrp);
+        else {
+          hide(regGrp);
+          regSel.value = "";
+        }
+      };
+      reg.addEventListener("change", toggleReg);
+      toggleReg();
+
+      // --- Test Type → BAT Value & Laboratory hide/show ---
+      const typeEl   = document.getElementById("test_type");
+      const batGrp   = document.getElementById("bat_value_group");
+      const labGrp   = document.getElementById("laboratory_group");
+      const toggleBT = () => {
+        if (typeEl.value === "Alcohol Breath Test") show(batGrp);
+        else hide(batGrp);
+
+        if (["Alcohol Breath Test","POCT Urine Test"].includes(typeEl.value))
+          hide(labGrp);
+        else show(labGrp);
+      };
+      typeEl.addEventListener("change", toggleBT);
+      toggleBT();
+
+      // --- Company Code → Location ---
+      const codeEl   = document.getElementById("company_code");
+      const locGrp   = document.getElementById("location_group");
+      const toggleCC = () => {
+        if (codeEl.value === "A1310") show(locGrp);
+        else {
+          hide(locGrp);
+          document.getElementById("location").value = "";
+        }
+      };
+      codeEl.addEventListener("input", toggleCC);
+      toggleCC();
+
+      // --- Test Result → Positive For ---
+      const resEl    = document.getElementById("test_result");
+      const posGrp   = document.getElementById("positive_for_group");
+      const togglePR = () => {
+        if (["Positive","Positive-Dilute"].includes(resEl.value)) show(posGrp);
+        else {
+          hide(posGrp);
+          document.getElementById("positive_for").value = "";
+        }
+      };
+      resEl.addEventListener("change", togglePR);
+      togglePR();
     });
   </script>
 {% endblock %}

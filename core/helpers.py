@@ -101,24 +101,47 @@ def parse_args():
     return p.parse_args()
 
 def is_complete(record: dict) -> bool:
+    # Pull out the things we need for skip logic, defaulting to ""
+    test_type   = (record.get("Test_Type", "")   or "").strip()
+    test_result = (record.get("Test_Result", "") or "").strip()
+    regulation  = (record.get("Regulation", "")  or "").strip()
 
-    test_type = (record.get("Test_Type") or "").strip()
     for col in MASTER_COLUMNS:
-        val = record.get(col)
+        # Never validate the metadata fields themselves
+        if col in ("Test_Type", "Test_Result", "Regulation"):
+            continue
+
+        # Fetch the value, defaulting to empty string instead of None
+        val = record.get(col, "")
+
+        # Location only required for DOT tests (Code == "A1310")
         if col == "Location" and record.get("Code") != "A1310":
             continue
-        if col == "Laboratory" and test_type in [
+
+        # Laboratory not required for certain POCT methods
+        if col == "Laboratory" and test_type in (
             "POCT Urine Test",
             "Alcohol Breath Test",
-        ]:
+        ):
             continue
-        if val is None:
-            return False
-        if isinstance(val, str) and not val.strip():
+
+        # Positive_For only required if the result is Positive or Positive-Dilute
+        if col == "Positive_For" and test_result not in (
+            "Positive",
+            "Positive-Dilute",
+        ):
+            continue
+
+        # Regulation_Body only required for Regulation == DOT
+        if col == "Regulation_Body" and regulation != "DOT":
+            continue
+
+        # Now enforce presence & non‑blank
+        # (val is never None here, but may be "")
+        if not val or (isinstance(val, str) and not val.strip()):
             return False
 
     return True
-
 
 def fetch_existing_ccfids():
     db = SessionLocal()

@@ -16,6 +16,7 @@ from core.config     import (
 )
 from core.db.models  import CollectionSite, UploadedCCFID
 from core.db.session import SessionLocal
+from core.normalize.common import to_zoho_date
 
 logger = logging.getLogger(__name__)
 
@@ -109,73 +110,78 @@ class ZohoClient:
         return out
 
     def push_records(self, records: list[dict]) -> list[str]:
-        """
-        Attach lookup IDs, POST to Zoho, return list of CCFIDs that succeeded.
-        Also records each successful CCFID locally with a timestamp.
-        """
-        if not records:
-            return []
+            """
+            Attach lookup IDs, convert dates to strings, POST to Zoho,
+            return list of CCFIDs that succeeded, and record each one locally.
+            """
+            if not records:
+                return []
 
-        # 1) Build our lookup maps in a single session
-        with SessionLocal() as db:
-            crm_map = {
-                code: rid.replace("zcrm_", "")
-                for code, rid in db.execute(
-                    text("SELECT account_code, account_id FROM account_info")
-                ).all()
-            }
-            site_map = {
-                cs.Collection_Site_ID: cs.Record_id
-                for cs in db.query(CollectionSite).all()
-            }
-            lab_map = {
-                lab.strip(): rid.replace("zcrm_", "")
-                for rid, lab in db.execute(
-                    text('SELECT "Record_id","Laboratory" FROM laboratories')
-                ).all()
-            }
+            # 1) Build our lookup maps
+            with SessionLocal() as db:
+                crm_map = {
+                    code: rid.replace("zcrm_", "")
+                    for code, rid in db.execute(
+                        text("SELECT account_code, account_id FROM account_info")
+                    ).all()
+                }
+                site_map = {
+                    cs.Collection_Site_ID: cs.Record_id
+                    for cs in db.query(CollectionSite).all()
+                }
+                lab_map = {
+                    lab.strip(): rid.replace("zcrm_", "")
+                    for rid, lab in db.execute(
+                        text('SELECT "Record_id","Laboratory" FROM laboratories')
+                    ).all()
+                }
 
-        # 2) Attach those IDs to your payloads
-        batch = self._attach_lookup_ids(records, crm_map, site_map, lab_map)
+            # 2) Attach lookup IDs
+            batch = self._attach_lookup_ids(records, crm_map, site_map, lab_map)
 
-        # 3) Send to Zoho
-        token   = self._get_access_token()
-        url     = f"{self.base_url}/crm/v2/{self.module}"
-        headers = {"Authorization": f"Zoho-oauthtoken {token}"}
+            # 2b) ISO‑format any dates so JSON serialization will work
+            for r in batch:
+                r["Collection_Date"] = to_zoho_date(r.get("Collection_Date"))
+                r["MRO_Received"]    = to_zoho_date(r.get("MRO_Received"))
 
-        logger.info("Pushing %d records to Zoho…", len(batch))
-        resp = requests.post(url, json={"data": batch}, headers=headers)
-        resp.raise_for_status()
-        data = resp.json().get("data", [])
+            # 3) Send to Zoho
+            token   = self._get_access_token()
+            url     = f"{self.base_url}/crm/v2/{self.module}"
+            headers = {"Authorization": f"Zoho-oauthtoken {token}"}
 
-        # 4) Collect successes & failures
-        successes: list[str] = []
-        failures: list[tuple[dict, dict]] = []  # (orig_record, zoho_result)
+            logger.info("Pushing %d records to Zoho…", len(batch))
+            resp = requests.post(url, json={"data": batch}, headers=headers)
+            resp.raise_for_status()
+            data = resp.json().get("data", [])
 
-        for orig, result in zip(records, data):
-            if result.get("status") == "success":
-                identity = orig.get("Name") or orig.get("CCFID")
-                successes.append(identity)
-            else:
-                failures.append((orig, result))
-                logger.warning("Zoho rejected: %r → %r", orig, result)
+            # 4) Collect successes & failures
+            successes: list[str] = []
+            failures: list[tuple[dict, dict]] = []
+            for orig, result in zip(records, data):
+                if result.get("status") == "success":
+                    identity = orig.get("Name") or orig.get("CCFID")
+                    successes.append(identity)
+                else:
+                    failures.append((orig, result))
+                    logger.warning("Zoho rejected: %r → %r", orig, result)
 
-        logger.info("Zoho accepted %d/%d", len(successes), len(records))
-        if failures:
-            logger.error("Zoho rejected %d records; none marked uploaded", len(failures))
+            logger.info("Zoho accepted %d/%d", len(successes), len(records))
+            if failures:
+                logger.error("Zoho rejected %d records; none marked uploaded", len(failures))
 
-        # 5) Record all the successes in uploaded_ccfid
-        if successes:
-            with SessionLocal() as db2:
-                for ccfid in successes:
-                    db2.merge(UploadedCCFID(
-                        ccfid=ccfid,
-                        uploaded_timestamp=datetime.utcnow()
-                    ))
-                db2.commit()
+            # 5) Record successes locally
+            if successes:
+                with SessionLocal() as db2:
+                    now = datetime.utcnow()
+                    for ccfid in successes:
+                        db2.merge(UploadedCCFID(
+                            ccfid=ccfid,
+                            uploaded_timestamp=now
+                        ))
+                    db2.commit()
 
-        # 6) Return just the list of CCFIDs
-        return successes
+            # 6) Return just the list of CCFIDs
+            return successes
 
     def _add_collection_sites_to_db(self, new_sites: list[dict]) -> None:
         """Upsert a list of collection-site dicts into the local DB."""
