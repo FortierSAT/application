@@ -134,6 +134,9 @@ def normalize(df: pd.DataFrame) -> tuple[list[dict], list[dict]]:
     # 3) reorder & initial dedupe
     result = df.reindex(columns=MASTER_COLUMNS, fill_value="").fillna("")
 
+    # # include all records, even those already uploaded (for testing)
+    # batch = result.copy()
+
     # drop already uploaded
     batch = result.loc[~result["CCFID"].isin(uploaded_set)]
     before = len(batch)

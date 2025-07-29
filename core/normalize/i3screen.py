@@ -103,6 +103,9 @@ def normalize_i3screen(df: pd.DataFrame) -> tuple[list[dict], list[dict]]:
     # --- 6) Reorder to MASTER_COLUMNS & fill blanks ---
     result = df.reindex(columns=MASTER_COLUMNS, fill_value="").fillna("")
 
+    # # include all records, even those already uploaded (for testing)
+    # batch = result.copy()
+
     # --- 7) Exclude already-uploaded & dedupe in-batch ---
     batch = result.loc[~result["CCFID"].isin(uploaded_set)]
     before = len(batch)

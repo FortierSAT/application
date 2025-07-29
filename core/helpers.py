@@ -101,44 +101,49 @@ def parse_args():
     return p.parse_args()
 
 def is_complete(record: dict) -> bool:
-    # Pull out the things we need for skip logic, defaulting to ""
     test_type   = (record.get("Test_Type", "")   or "").strip()
     test_result = (record.get("Test_Result", "") or "").strip()
     regulation  = (record.get("Regulation", "")  or "").strip()
 
     for col in MASTER_COLUMNS:
-        # Never validate the metadata fields themselves
+        # Skip validation for these metadata fields
         if col in ("Test_Type", "Test_Result", "Regulation"):
             continue
 
-        # Fetch the value, defaulting to empty string instead of None
-        val = record.get(col, "")
+        # ───── Skip Logic ───────────────────────────────────────
 
-        # Location only required for DOT tests (Code == "A1310")
+        # Location is only required for DOT tests (Code == "A1310")
         if col == "Location" and record.get("Code") != "A1310":
             continue
 
-        # Laboratory not required for certain POCT methods
+        # Laboratory is not required for POCT or Alcohol tests
         if col == "Laboratory" and test_type in (
             "POCT Urine Test",
             "Alcohol Breath Test",
         ):
             continue
 
-        # Positive_For only required if the result is Positive or Positive-Dilute
+        # BAT_Value only required for Alcohol Breath Test
+        if col == "BAT_Value" and test_type != "Alcohol Breath Test":
+            continue
+
+        # Positive_For only required if result is Positive or Positive-Dilute
         if col == "Positive_For" and test_result not in (
             "Positive",
             "Positive-Dilute",
         ):
             continue
 
-        # Regulation_Body only required for Regulation == DOT
+        # Regulation_Body only required if Regulation == DOT
         if col == "Regulation_Body" and regulation != "DOT":
             continue
 
-        # Now enforce presence & non‑blank
-        # (val is never None here, but may be "")
-        if not val or (isinstance(val, str) and not val.strip()):
+        # ───── Value Check ──────────────────────────────────────
+
+        val = record.get(col, "")
+
+        # Normalize common empty/null values
+        if val is None or str(val).strip().lower() in ("", "none", "nan"):
             return False
 
     return True

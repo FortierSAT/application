@@ -181,6 +181,9 @@ def normalize_escreen(
     # 8) Master‐schema reorder
     result = df.reindex(columns=MASTER_COLUMNS, fill_value="").fillna("")
 
+    # # include all records, even those already uploaded (for testing)
+    # batch = result.copy()
+
     # 9) Exclude already‐uploaded & in‐batch dedupe
     batch = result[~result["CCFID"].isin(uploaded_set)]
     before = len(batch)
