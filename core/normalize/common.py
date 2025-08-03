@@ -64,6 +64,7 @@ MASTER_COLUMNS = [
     "Collection_Date",
     "Test_Reason",
     "Test_Result",
+    "Positive_For",
     "Test_Type",
     "Regulation",
     "Regulation_Body",
