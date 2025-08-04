@@ -16,7 +16,7 @@ from core.normalize.common  import (
 )
 from core.services.zoho     import zoho_client
 from core.db.session        import SessionLocal
-from core.db.models         import UploadedCCFID, WorklistStaging, CollectionSite
+from core.db.models         import UploadedCCFID, WorklistStaging, CollectionSite, Panel
 
 logger = logging.getLogger(__name__)
 
@@ -89,6 +89,7 @@ def normalize(df: pd.DataFrame) -> tuple[list[dict], list[dict]]:
         df.get("Reason", "Other").apply(map_reason)
         if "Reason" in df.columns else "Other"
     )
+    df["Panel"]        = df.get("Lab Panel", "")
     df["Laboratory"]       = (
         df.get("Lab Code", "").apply(map_laboratory)
         if "Lab Code" in df.columns else ""
@@ -193,6 +194,7 @@ def normalize(df: pd.DataFrame) -> tuple[list[dict], list[dict]]:
             "Test_Reason":     "test_reason",
             "Test_Result":     "test_result",
             "Test_Type":       "test_type",
+            "Panel":           "panel",
             "Regulation":      "regulation",
             "Regulation_Body": "regulation_body",
             "BAT_Value":       "bat_value",
@@ -221,7 +223,7 @@ def normalize(df: pd.DataFrame) -> tuple[list[dict], list[dict]]:
             row["uploaded_timestamp"] = now
             mapped.append(row)
 
-        db = SessionLocal()
+        db = SessionLocal() 
         db.bulk_insert_mappings(WorklistStaging, mapped)
         db.commit()
         db.close()

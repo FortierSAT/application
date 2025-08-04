@@ -18,6 +18,7 @@ class WorklistStaging(Base):
     collection_site = Column(Text)
     collection_site_id = Column(Text)
     laboratory = Column(Text)
+    panel = Column(Text)
     location = Column(Text)
     test_reason = Column(Text)
     test_result = Column(Text)
@@ -60,3 +61,9 @@ class Laboratory(Base):
 
     Record_id = Column(Text, primary_key=True)
     Laboratory = Column(Text, unique=True, index=True)
+
+class Panel(Base):
+    __tablename__ = "panels"
+
+    panel_id = Column(Text, primary_key=True)
+    panel_name = Column(Text)

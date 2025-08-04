@@ -66,6 +66,7 @@ MASTER_COLUMNS = [
     "Test_Result",
     "Positive_For",
     "Test_Type",
+    "Panel",
     "Regulation",
     "Regulation_Body",
     "BAT_Value",

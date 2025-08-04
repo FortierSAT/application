@@ -87,6 +87,7 @@ def normalize_i3screen(df: pd.DataFrame) -> tuple[list[dict], list[dict]]:
 
     # --- 5) Laboratory, regulation, site & location ---
     df["Laboratory"]         = df.get("Lab","").apply(map_laboratory)
+    df["Panel"]              = df.get("Panel","")
     df["Regulation"]         = df.get("Program Description","").apply(map_regulation)
     df["Regulation_Body"]    = df.get("Agency","").apply(map_regbody)
     df["Collection_Site"]    = df.get("Collection Site","").fillna("").str.title()
@@ -159,6 +160,7 @@ def normalize_i3screen(df: pd.DataFrame) -> tuple[list[dict], list[dict]]:
             "Collection_Site":    "collection_site",
             "Collection_Site_ID": "collection_site_id",
             "Laboratory":         "laboratory",
+            "Panel":              "panel",
             "Location":           "location",
             "Test_Reason":        "test_reason",
             "Test_Result":        "test_result",

@@ -154,6 +154,14 @@ nav a:hover {
 }
 
 /* --- Detail Form --- */
+.detail-form .form-group select[multiple] {
+  /* allow the browser’s size attribute to take effect */
+  height: auto !important;
+  /* give it a reasonable minimum so it isn’t just one line */
+  min-height: calc(1.2em * 6 + 0.9rem); /* 6 rows × line-height + vertical padding */
+  /* still fill the width */
+  width: 100%;
+}
 .detail-form .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px,1fr));
@@ -189,6 +197,37 @@ nav a:hover {
   border-color: var(--error);
   background: var(--error-bg);
 }
+/* --- Tag-picker for Positive For --- */
+.tag-picker {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.tag-option {
+  padding: 0.3rem 0.6rem;
+  border: 1px solid #d1e3fc;
+  border-radius: 0.5rem;
+  font-size: 0.85rem;
+  background: #fafcff;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+.tag-option.selected {
+  background: var(--primary);
+  border-color: var(--primary-dark);
+  color: #fff;
+}
+.tag-input {
+  width: 100%;
+  padding: 0.45rem 0.6rem;
+  font-size: 0.9rem;
+  border: 1px solid #d1e3fc;
+  border-radius: 0.5rem;
+  background: #fafcff;
+  cursor: text;
+}
+
 
 /* --- Form Actions & Buttons --- */
 .form-actions {

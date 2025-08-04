@@ -158,6 +158,13 @@ def normalize_escreen(
         zero_mask = df[ba_quant_col].astype(str).str.strip().replace({"nan":""}) == "0"
         df.loc[zero_mask, "Test_Result"] = "Negative"
 
+    # 5.5) determine panel
+    def panel(v):
+        s = str(v).lower()
+        if "ecup" in s:                 return "eCup"
+        return None
+    df["Panel"]  = df[type_col].apply(panel)
+
     # 6) Test_Type & Laboratory
     def escreen_type(v):
         s = str(v).lower()
@@ -238,6 +245,7 @@ def normalize_escreen(
             "Test_Result":        "test_result",
             "Test_Type":          "test_type",
             "Regulation":         "regulation",
+            "Panel":              "panel",
         }
         now    = datetime.utcnow()
         mapped = []

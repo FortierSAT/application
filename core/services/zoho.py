@@ -3,6 +3,7 @@
 import logging
 from datetime import datetime, timedelta
 
+
 import pandas as pd
 import requests
 from sqlalchemy import text
@@ -14,7 +15,7 @@ from core.config     import (
     ZOHO_REFRESH_TOKEN,
     ZOHO_MODULE,
 )
-from core.db.models  import CollectionSite, UploadedCCFID
+from core.db.models  import CollectionSite, UploadedCCFID, Panel
 from core.db.session import SessionLocal
 from core.normalize.common import to_zoho_date
 
@@ -61,12 +62,13 @@ class ZohoClient:
 
         data   = resp.json()
         token  = data["access_token"]
+        now     = datetime.utcnow()
         expires = now + timedelta(seconds=int(data.get("expires_in", 3500)))
         _token_cache.update({"access_token": token, "expires_at": expires})
         logger.info("Refreshed Zoho access token; expires at %s", expires)
         return token
 
-    def _attach_lookup_ids(self, records, crm_map, site_map, lab_map):
+    def _attach_lookup_ids(self, records, crm_map, site_map, lab_map, panel_map):
         """
         Replace staging keys with Zoho {"id":...} lookups.
         Mirrors old `_attach_lookup_ids`.
@@ -106,6 +108,13 @@ class ZohoClient:
                 if zoho_lab:
                     r["Laboratory"] = {"id": int(strip_zcrm(zoho_lab))}
 
+            # 4) Panel lookup
+            raw_panel = r.get("Panel", "").strip()
+            if raw_panel:
+                panel_str = panel_map.get(raw_panel)
+                if panel_str:
+                    r["Panel"] = {"id": int(strip_zcrm(panel_str))}
+
             out.append(r)
         return out
 
@@ -135,9 +144,12 @@ class ZohoClient:
                         text('SELECT "Record_id","Laboratory" FROM laboratories')
                     ).all()
                 }
-
+                panel_map = {
+                    p.panel_name: p.panel_id.replace("zcrm_", "")
+                    for p in db.query(Panel).all()
+                }
             # 2) Attach lookup IDs
-            batch = self._attach_lookup_ids(records, crm_map, site_map, lab_map)
+            batch = self._attach_lookup_ids(records, crm_map, site_map, lab_map, panel_map)
 
             # 2b) ISO‑format any dates so JSON serialization will work
             for r in batch:

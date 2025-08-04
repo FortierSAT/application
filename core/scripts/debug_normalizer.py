@@ -13,11 +13,11 @@ from core.normalize.i3screen import normalize_i3screen
 from core.normalize.escreen import normalize_escreen
 
 # ─── Load your test data ────────────────────────────────────────────
-df = pd.read_excel("DrugTestSummaryReport_Total.xlsx", skiprows=7)
+df = pd.read_csv("CustomerParticipantResults.csv")
 
 
 # ─── Run the normalizer ─────────────────────────────────────────────
-complete, staging = normalize_escreen(df)
+complete, staging = normalize_i3screen(df)
 
 # ─── Convert to DataFrames ──────────────────────────────────────────
 df_complete = pd.DataFrame(complete)
